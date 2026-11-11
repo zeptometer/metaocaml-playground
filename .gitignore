@@ -1,0 +1,7 @@
+_build/
+_opam/
+node_modules/
+# build outputs promoted into www/
+www/playground.min.js
+www/worker.min.js
+www/stdlib/

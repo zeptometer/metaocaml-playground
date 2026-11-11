@@ -1,0 +1,66 @@
+; Toplevel worker (bytecode, then compiled to JS as a toplevel below)
+
+(executable
+ (name worker)
+ (modes byte)
+ (modules worker)
+ ; Link metalib.cma itself rather than the [metaocaml] findlib package, whose
+ ; bytecode archive also includes berstart.cmo: that unit initialises the
+ ; toplevel environment as soon as it is loaded, which fails in the worker
+ ; (Unbound module Stdlib) because the .cmi files are only fetched later, on
+ ; [init]. worker.ml does the relevant parts of its setup instead.
+ (link_flags (-linkall %{ocaml_where}/metalib.cma))
+ (libraries js_top_worker compiler-libs.bytecomp compiler-libs.toplevel))
+
+; Units the toplevel can refer to by name: the stdlib plus MetaOCaml's
+; library (Codelib, Runcode, Lifts) and Trx, which code generated from
+; brackets calls at run time.
+
+(rule
+ (targets stdlib_units.txt)
+ (action
+  (run jsoo_listunits -o %{targets} stdlib)))
+
+(rule
+ (targets export.txt)
+ (action
+  (with-stdout-to
+   %{targets}
+   (progn
+    (cat %{dep:stdlib_units.txt})
+    (echo "Codelib\nRuncode\nLifts\nTrx\n")))))
+
+(rule
+ (targets worker.js)
+ (action
+  (run
+   %{bin:js_of_ocaml}
+   --toplevel
+   --export
+   %{dep:export.txt}
+   --no-cmis
+   --effects=cps
+   --linkall
+   +toplevel.js
+   +dynlink.js
+   %{dep:worker.bc}
+   -o
+   %{targets})))
+
+; The list of .cmi files served next to the page
+
+(rule
+ (target cmis.ml)
+ (deps gen_cmis_ml.sh ../www/stdlib)
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./gen_cmis_ml.sh))))
+
+; Page script
+
+(executable
+ (name main)
+ (modes js)
+ (modules main edit cmis)
+ (libraries brr code-mirror code-mirror.stream js_top_worker_client lwt))

@@ -1,0 +1,24 @@
+; Build outputs promoted into www/, which is then a self-contained static site.
+
+(rule
+ (targets playground.min.js)
+ (mode
+  (promote (until-clean)))
+ (action
+  (run jsoo_minify %{dep:../src/main.bc.js} -o %{targets})))
+
+(rule
+ (targets worker.min.js)
+ (mode
+  (promote (until-clean)))
+ (deps stdlib)
+ (action
+  (run jsoo_minify %{dep:../src/worker.js} -o %{targets})))
+
+(rule
+ (targets
+  (dir stdlib))
+ (mode
+  (promote (until-clean)))
+ (action
+  (run %{dep:../gen_stdlib.sh})))

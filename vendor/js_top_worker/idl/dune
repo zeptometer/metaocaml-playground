@@ -1,0 +1,14 @@
+; Vendored from https://github.com/tmattio/js_top_worker
+; (commit 6110d50db0ce8577e6d662fa06d5ae9cc0c95ea1), patched for OCaml 5.3.
+; toplevel_api_gen.ml is the pre-generated output of the upstream
+; ppx_deriving_rpc definition, so the ppx is not needed here.
+
+(library
+ (name js_top_worker_rpc)
+ (modules idl rpc rpcmarshal toplevel_api_gen)
+ (libraries rresult))
+
+(library
+ (name js_top_worker_client)
+ (modules js_top_worker_client)
+ (libraries js_top_worker_rpc lwt brr))
