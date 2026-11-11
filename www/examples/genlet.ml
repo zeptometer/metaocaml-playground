@@ -1,4 +1,4 @@
-(* 2. let-insertion with MetaOCaml's genlet and an explicit locus *)
+(* 4. let-insertion with MetaOCaml's genlet and an explicit locus *)
 
 (* genlet ~locus:l c binds c with a let at the locus l, and returns the
    bound variable: squarings are shared instead of being duplicated *)

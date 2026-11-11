@@ -1,4 +1,4 @@
-(* 3. let-insertion by writing the generator in CPS *)
+(* 5. let-insertion by writing the generator in CPS *)
 
 (* spower n x k passes x^n to the continuation k; since k is called
    inside the let, the rest of the code can refer to the bound variable *)

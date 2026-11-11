@@ -27,10 +27,14 @@
                An example can also be opened directly with #example=<value>. -->
           <select id="examples" class="btn">
             <option value="spower">1. Plain spower</option>
+            <optgroup label="Failed attempts">
+              <option value="duplicate">2. Duplicated code</option>
+              <option value="inner-let">3. let in the middle</option>
+            </optgroup>
             <optgroup label="Let-insertion">
-              <option value="genlet">2. With genlet</option>
-              <option value="cps">3. With CPS</option>
-              <option value="handler">4. With effect handlers</option>
+              <option value="genlet">4. With genlet</option>
+              <option value="cps">5. With CPS</option>
+              <option value="handler">6. With effect handlers</option>
             </optgroup>
           </select>
         </label>

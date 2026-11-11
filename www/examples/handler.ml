@@ -1,4 +1,4 @@
-(* 4. let-insertion with OCaml 5 effect handlers: our own genlet / let_locus.
+(* 6. let-insertion with OCaml 5 effect handlers: our own genlet / let_locus.
    genlet performs an effect; the handler at let_locus inserts the let and
    resumes the generator with the new variable. *)
 
@@ -12,7 +12,7 @@ let let_locus (body : unit -> 'w code) : 'w code =
   | effect Genlet c, k ->
     .< let t = .~c in .~(Effect.Deep.continue k .< t >.) >.
 
-(* The generator is the same as in example 2, without the locus argument *)
+(* The generator is the same as in example 4, without the locus argument *)
 let rec spower n x =
   if n = 0 then .< 1 >.
   else if n = 1 then x
