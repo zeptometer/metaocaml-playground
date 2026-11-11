@@ -21,6 +21,19 @@
     <section class="pane editor-pane">
       <div id="editor1" class="editor"></div>
       <div class="toolbar">
+        <label class="examples" title="Replace the editor contents with an example">
+          <span>Examples</span>
+          <!-- value: file under examples/ without .ml; the first one is loaded by default.
+               An example can also be opened directly with #example=<value>. -->
+          <select id="examples" class="btn">
+            <option value="spower">1. Plain spower</option>
+            <optgroup label="Let-insertion">
+              <option value="genlet">2. With genlet</option>
+              <option value="cps">3. With CPS</option>
+              <option value="handler">4. With effect handlers</option>
+            </optgroup>
+          </select>
+        </label>
         <span class="hint">Ctrl/⌘ + Enter to run</span>
         <button id="share" class="btn" title="Put the code in the URL and copy the link">Share</button>
         <button id="run" class="btn btn-primary" disabled>Run ▶</button>
@@ -36,24 +49,5 @@
     </section>
   </main>
 
-<script type="text/plain" id="default-code">(* Welcome to the MetaOCaml playground!
-   .< e >.   quotes e as code (a value of type 'a code)
-   .~ e      splices the code value e into a quotation
-   Runcode.run c   compiles and runs the code value c *)
-
-(* A staged power function: the recursion happens at generation time *)
-let rec spower n x =
-  if n = 0 then .< 1 >.
-  else if n mod 2 = 0 then .< let y = .~(spower (n / 2) x) in y * y >.
-  else .< .~x * .~(spower (n - 1) x) >.
-
-(* Generated code for x^7 *)
-let power7_code = .< fun x -> .~(spower 7 .< x >.) >.
-
-(* Compile it, then use it like any other function *)
-let power7 = Runcode.run power7_code
-
-let () = Printf.printf "2^7 = %d\n" (power7 2)
-</script>
 </body>
 </html>

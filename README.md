@@ -18,6 +18,10 @@ It is derived from the [ocaml.org playground](https://github.com/ocaml/ocaml.org
 - A CodeMirror editor with OCaml highlighting. Ctrl/⌘ + Enter runs the code.
 - Share links: **Share** puts the code in the URL fragment (`#code=<base64>`)
   and copies the link.
+- An **Examples** menu that loads the programs in `www/examples/`. A link can
+  open one directly: `#example=cps`. To add an example, put `<name>.ml` in
+  `www/examples/` and add an `<option value="<name>">` to the `#examples` menu
+  in `www/index.html`.
 
 ## Building
 
@@ -45,7 +49,21 @@ HTTP (web workers don't load from `file://`):
 cd www && python3 -m http.server 8000
 ```
 
-Then open http://localhost:8000/. To deploy it, copy `www/` to any static host.
+Then open http://localhost:8000/.
+
+## Deploying
+
+The site is plain static files with relative URLs, so it can be served from
+any directory of any web server. `deploy.sh` builds it and uploads it with
+rsync:
+
+```sh
+DEPLOY_DEST=user@host:public_html/metaocaml-playground/ ./deploy.sh --dry-run
+DEPLOY_DEST=user@host:public_html/metaocaml-playground/ ./deploy.sh
+```
+
+The destination is made to mirror `www/` (rsync `--delete`), so it should be
+a directory used only for the playground.
 
 ## Layout
 

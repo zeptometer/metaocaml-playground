@@ -39,11 +39,6 @@ let script_data s =
   let script = get_el_by_id "playground-script" in
   Option.value ~default:"" (Option.map Jstr.to_string (El.at (Jstr.v s) script))
 
-let default_code () =
-  match Document.find_el_by_id G.document (Jstr.v "default-code") with
-  | Some el -> Jstr.to_string (Jv.to_jstr (Jv.get (El.to_jv el) "textContent"))
-  | None -> ""
-
 (* Syntax highlighting: CodeMirror's legacy OCaml mode. *)
 let ocaml_language =
   Stream.Language.define (Stream.Language.of_jv (Jv.get Jv.global "__CM__mllike"))
@@ -97,13 +92,54 @@ module Codec = struct
     Ok ()
 end
 
+(* Examples: www/examples/<name>.ml, listed in the #examples menu of
+   index.html. The first one in the menu is the page's default code. *)
+module Examples = struct
+  let select () = get_el_by_id "examples"
+  let selected () = Jv.to_string (Jv.get (El.to_jv (select ())) "value")
+  (* An unknown name leaves the default (first) example selected. *)
+  let set_selected name =
+    let sel = El.to_jv (select ()) in
+    Jv.set sel "value" (Jv.of_string name);
+    if selected () = "" then Jv.set sel "selectedIndex" (Jv.of_int 0)
+
+  let fetch name k =
+    let open Brr_io.Fetch in
+    let fail e = Console.error [ Jstr.v "Failed to load example"; Jstr.v name; e ] in
+    Fut.await (url (Jstr.v ("examples/" ^ name ^ ".ml"))) @@ function
+    | Error e -> fail (Jv.of_error e)
+    | Ok r when not (Response.ok r) -> fail (Jv.of_int (Response.status r))
+    | Ok r -> (
+        Fut.await (Body.text (Response.as_body r)) @@ function
+        | Error e -> fail (Jv.of_error e)
+        | Ok text -> k (Jstr.to_string text))
+
+  (* [#example=<name>] in the URL *)
+  let from_window () =
+    let params = Uri.fragment_params (Window.location G.window) in
+    Option.map Jstr.to_string (Uri.Params.find (Jstr.v "example") params)
+end
+
 let setup () =
-  let initial_code = Option.value ~default:(default_code ()) (Codec.from_window ()) in
+  let exts = [| dark_theme_ext; Editor.View.line_wrapping (); ocaml_language |] in
+  let shared_code = Codec.from_window () in
   let _state, view =
-    Edit.init ~doc:(Jstr.v initial_code)
-      ~exts:[| dark_theme_ext; Editor.View.line_wrapping (); ocaml_language |]
-      ()
+    Edit.init ~doc:(Jstr.v (Option.value ~default:"" shared_code)) ~exts ()
   in
+  let load_example name =
+    Examples.fetch name (fun code -> Edit.set view ~doc:(Jstr.v code) ~exts)
+  in
+  (* A shared #code=… link takes precedence over #example=…; with neither,
+     the first example in the menu (selected by default) is loaded. *)
+  (match shared_code with
+  | Some _ -> ()
+  | None ->
+      Option.iter Examples.set_selected (Examples.from_window ());
+      load_example (Examples.selected ()));
+  ignore
+    (Ev.listen Ev.change
+       (fun _ -> load_example (Examples.selected ()))
+       (El.as_target (Examples.select ())));
   let rpc = initialise (script_data "data-worker-url") timeout_container in
   let* o = with_rpc rpc Toprpc.setup () in
   handle_output o;

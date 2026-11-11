@@ -91,6 +91,14 @@ body {
 
 .hint { margin-right: auto; color: var(--muted); font-size: 12px; }
 
+.examples { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.examples select {
+  padding: 4px 8px;
+  background: var(--panel);
+  font-size: 13px;
+}
+.examples select option, .examples select optgroup { background: var(--panel); color: var(--text); }
+
 .btn {
   font: inherit;
   padding: 5px 14px;
@@ -134,4 +142,6 @@ body {
   .output-pane { flex: 2; }
   .hint { display: none; }
   .toolbar { justify-content: flex-end; }
+  .examples { margin-right: auto; }
+  .examples > span { display: none; }
 }
