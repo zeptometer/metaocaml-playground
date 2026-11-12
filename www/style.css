@@ -119,6 +119,9 @@ body {
 }
 .btn-primary:hover { filter: brightness(1.08); }
 .btn[disabled] { opacity: 0.5; cursor: progress; }
+/* Room for "Copied!" so the toolbar doesn't shift when the label changes */
+#share { min-width: 7.5em; }
+#share.flash { border-color: var(--accent); color: var(--accent); }
 .btn.loading { opacity: 0.7; cursor: progress; }
 
 .output {

@@ -161,10 +161,31 @@ let setup () =
   let listen id f = ignore (Ev.listen Ev.click (fun _ -> f ()) (El.as_target (get_el_by_id id))) in
   listen "run" run;
   listen "clear" (fun () -> El.set_children (output_el ()) []);
+  (* Share: put the code in the URL, copy the URL, and say so on the button
+     for a second. *)
+  let share_button = get_el_by_id "share" in
+  let share_reset = ref None in
+  let flash_share msg =
+    Option.iter G.stop_timer !share_reset;
+    El.set_children share_button [ El.txt' msg ];
+    El.set_class (Jstr.v "flash") true share_button;
+    share_reset :=
+      Some
+        (G.set_timeout ~ms:1000 (fun () ->
+             share_reset := None;
+             El.set_class (Jstr.v "flash") false share_button;
+             El.set_children share_button [ El.txt' "Share" ]))
+  in
   listen "share" (fun () ->
       Console.log_if_error ~use:() (Codec.to_window @@ Jstr.v (Edit.get_doc view));
       let clipboard = Brr_io.Clipboard.of_navigator G.navigator in
-      ignore (Brr_io.Clipboard.write_text clipboard (Window.location G.window |> Uri.to_jstr)));
+      Fut.await
+        (Brr_io.Clipboard.write_text clipboard (Window.location G.window |> Uri.to_jstr))
+        (function
+          | Ok () -> flash_share "Copied!"
+          | Error e ->
+              Console.error [ Jstr.v "Failed to copy the link"; e ];
+              flash_share "Copy failed"));
   (* Ctrl-Enter / Cmd-Enter runs the code *)
   ignore
     (Ev.listen Ev.keydown
